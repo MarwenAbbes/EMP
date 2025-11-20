@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mira.UI", "Mira.UI\Mira.UI.csproj", "{15E211D6-A480-4A16-AA2C-0445CCFE9444}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mira.Core", "Mira.Core\Mira.Core.csproj", "{AAE2BDA7-2E9C-4899-A1D5-94C742EA0E22}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15E211D6-A480-4A16-AA2C-0445CCFE9444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15E211D6-A480-4A16-AA2C-0445CCFE9444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15E211D6-A480-4A16-AA2C-0445CCFE9444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15E211D6-A480-4A16-AA2C-0445CCFE9444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAE2BDA7-2E9C-4899-A1D5-94C742EA0E22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAE2BDA7-2E9C-4899-A1D5-94C742EA0E22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAE2BDA7-2E9C-4899-A1D5-94C742EA0E22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAE2BDA7-2E9C-4899-A1D5-94C742EA0E22}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
