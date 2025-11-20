@@ -46,6 +46,7 @@ partial class FHome
         exportWordFormatToolStripMenuItem = new ToolStripMenuItem();
         exportCsvFormatToolStripMenuItem = new ToolStripMenuItem();
         generalInfoGroupBox = new GroupBox();
+        compareButton = new Button();
         comparisonDateTextBox = new TextBox();
         comparisonDateLabel = new Label();
         responsiblePersonTextBox = new TextBox();
@@ -57,20 +58,19 @@ partial class FHome
         projectNameTextBox = new TextBox();
         projectNameLabel = new Label();
         comparisonContainerGroupBox = new GroupBox();
-        compareButton = new Button();
+        comparisonResultsGroupBox = new GroupBox();
+        comparisonDataGridView = new DataGridView();
         planStatusGroupBox = new GroupBox();
-        clientPlanStatusValueLabel = new Label();
-        clientPlanStatusLabel = new Label();
         empPlanStatusValueLabel = new Label();
         empPlanStatusLabel = new Label();
-        comparisonDataGridView = new DataGridView();
-        comparisonResultsGroupBox = new GroupBox();
+        clientPlanStatusValueLabel = new Label();
+        clientPlanStatusLabel = new Label();
         mainMenuStrip.SuspendLayout();
         generalInfoGroupBox.SuspendLayout();
         comparisonContainerGroupBox.SuspendLayout();
-        planStatusGroupBox.SuspendLayout();
-        ((System.ComponentModel.ISupportInitialize)comparisonDataGridView).BeginInit();
         comparisonResultsGroupBox.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)comparisonDataGridView).BeginInit();
+        planStatusGroupBox.SuspendLayout();
         SuspendLayout();
         // 
         // mainMenuStrip
@@ -144,12 +144,14 @@ partial class FHome
         importClientPlanToolStripMenuItem.Name = "importClientPlanToolStripMenuItem";
         importClientPlanToolStripMenuItem.Size = new Size(131, 22);
         importClientPlanToolStripMenuItem.Text = "Plan Client";
+        importClientPlanToolStripMenuItem.Click += importClientPlanToolStripMenuItem_Click;
         // 
         // importEmpPlanToolStripMenuItem
         // 
         importEmpPlanToolStripMenuItem.Name = "importEmpPlanToolStripMenuItem";
         importEmpPlanToolStripMenuItem.Size = new Size(131, 22);
         importEmpPlanToolStripMenuItem.Text = "Plan EMP";
+        importEmpPlanToolStripMenuItem.Click += importEmpPlanToolStripMenuItem_Click;
         // 
         // exportToolStripMenuItem
         // 
@@ -196,6 +198,15 @@ partial class FHome
         generalInfoGroupBox.TabIndex = 1;
         generalInfoGroupBox.TabStop = false;
         generalInfoGroupBox.Text = "Information General";
+        // 
+        // compareButton
+        // 
+        compareButton.Location = new Point(616, 62);
+        compareButton.Name = "compareButton";
+        compareButton.Size = new Size(142, 23);
+        compareButton.TabIndex = 2;
+        compareButton.Text = "Comparer";
+        compareButton.UseVisualStyleBackColor = true;
         // 
         // comparisonDateTextBox
         // 
@@ -304,14 +315,25 @@ partial class FHome
         comparisonContainerGroupBox.TabStop = false;
         comparisonContainerGroupBox.Text = "Comparison COMP0001";
         // 
-        // compareButton
+        // comparisonResultsGroupBox
         // 
-        compareButton.Location = new Point(616, 62);
-        compareButton.Name = "compareButton";
-        compareButton.Size = new Size(142, 23);
-        compareButton.TabIndex = 2;
-        compareButton.Text = "Comparer";
-        compareButton.UseVisualStyleBackColor = true;
+        comparisonResultsGroupBox.Controls.Add(comparisonDataGridView);
+        comparisonResultsGroupBox.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+        comparisonResultsGroupBox.Location = new Point(6, 186);
+        comparisonResultsGroupBox.Name = "comparisonResultsGroupBox";
+        comparisonResultsGroupBox.Size = new Size(764, 205);
+        comparisonResultsGroupBox.TabIndex = 4;
+        comparisonResultsGroupBox.TabStop = false;
+        comparisonResultsGroupBox.Text = "Resultat";
+        // 
+        // comparisonDataGridView
+        // 
+        comparisonDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+        comparisonDataGridView.Dock = DockStyle.Fill;
+        comparisonDataGridView.Location = new Point(3, 19);
+        comparisonDataGridView.Name = "comparisonDataGridView";
+        comparisonDataGridView.Size = new Size(758, 183);
+        comparisonDataGridView.TabIndex = 3;
         // 
         // planStatusGroupBox
         // 
@@ -327,24 +349,16 @@ partial class FHome
         planStatusGroupBox.TabStop = false;
         planStatusGroupBox.Text = "Statut de plans";
         // 
-        // clientPlanStatusLabel
+        // empPlanStatusValueLabel
         // 
-        clientPlanStatusLabel.AutoSize = true;
-        clientPlanStatusLabel.Location = new Point(15, 19);
-        clientPlanStatusLabel.Name = "clientPlanStatusLabel";
-        clientPlanStatusLabel.Size = new Size(94, 15);
-        clientPlanStatusLabel.TabIndex = 0;
-        clientPlanStatusLabel.Text = "Plan Client est : ";
-        // 
-        // clientPlanStatusValueLabel
-        // 
-        clientPlanStatusValueLabel.AutoSize = true;
-        clientPlanStatusValueLabel.ForeColor = Color.Red;
-        clientPlanStatusValueLabel.Location = new Point(103, 19);
-        clientPlanStatusValueLabel.Name = "clientPlanStatusValueLabel";
-        clientPlanStatusValueLabel.Size = new Size(72, 15);
-        clientPlanStatusValueLabel.TabIndex = 0;
-        clientPlanStatusValueLabel.Text = "Introuvable";
+        empPlanStatusValueLabel.AutoSize = true;
+        empPlanStatusValueLabel.ForeColor = Color.Red;
+        empPlanStatusValueLabel.Location = new Point(282, 19);
+        empPlanStatusValueLabel.Name = "empPlanStatusValueLabel";
+        empPlanStatusValueLabel.Size = new Size(72, 15);
+        empPlanStatusValueLabel.TabIndex = 0;
+        empPlanStatusValueLabel.Text = "Introuvable";
+        empPlanStatusValueLabel.Click += empPlanStatusValueLabel_Click;
         // 
         // empPlanStatusLabel
         // 
@@ -355,35 +369,25 @@ partial class FHome
         empPlanStatusLabel.TabIndex = 0;
         empPlanStatusLabel.Text = "Plan EMP est : ";
         // 
-        // empPlanStatusValueLabel
+        // clientPlanStatusValueLabel
         // 
-        empPlanStatusValueLabel.AutoSize = true;
-        empPlanStatusValueLabel.ForeColor = Color.Red;
-        empPlanStatusValueLabel.Location = new Point(282, 19);
-        empPlanStatusValueLabel.Name = "empPlanStatusValueLabel";
-        empPlanStatusValueLabel.Size = new Size(72, 15);
-        empPlanStatusValueLabel.TabIndex = 0;
-        empPlanStatusValueLabel.Text = "Introuvable";
+        clientPlanStatusValueLabel.AutoSize = true;
+        clientPlanStatusValueLabel.ForeColor = Color.Red;
+        clientPlanStatusValueLabel.Location = new Point(103, 19);
+        clientPlanStatusValueLabel.Name = "clientPlanStatusValueLabel";
+        clientPlanStatusValueLabel.Size = new Size(72, 15);
+        clientPlanStatusValueLabel.TabIndex = 0;
+        clientPlanStatusValueLabel.Text = "Introuvable";
+        clientPlanStatusValueLabel.Click += clientPlanStatusValueLabel_Click;
         // 
-        // comparisonDataGridView
+        // clientPlanStatusLabel
         // 
-        comparisonDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-        comparisonDataGridView.Dock = DockStyle.Fill;
-        comparisonDataGridView.Location = new Point(3, 19);
-        comparisonDataGridView.Name = "comparisonDataGridView";
-        comparisonDataGridView.Size = new Size(758, 183);
-        comparisonDataGridView.TabIndex = 3;
-        // 
-        // comparisonResultsGroupBox
-        // 
-        comparisonResultsGroupBox.Controls.Add(comparisonDataGridView);
-        comparisonResultsGroupBox.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        comparisonResultsGroupBox.Location = new Point(6, 186);
-        comparisonResultsGroupBox.Name = "comparisonResultsGroupBox";
-        comparisonResultsGroupBox.Size = new Size(764, 205);
-        comparisonResultsGroupBox.TabIndex = 4;
-        comparisonResultsGroupBox.TabStop = false;
-        comparisonResultsGroupBox.Text = "Resultat";
+        clientPlanStatusLabel.AutoSize = true;
+        clientPlanStatusLabel.Location = new Point(15, 19);
+        clientPlanStatusLabel.Name = "clientPlanStatusLabel";
+        clientPlanStatusLabel.Size = new Size(94, 15);
+        clientPlanStatusLabel.TabIndex = 0;
+        clientPlanStatusLabel.Text = "Plan Client est : ";
         // 
         // FHome
         // 
@@ -400,10 +404,10 @@ partial class FHome
         generalInfoGroupBox.ResumeLayout(false);
         generalInfoGroupBox.PerformLayout();
         comparisonContainerGroupBox.ResumeLayout(false);
+        comparisonResultsGroupBox.ResumeLayout(false);
+        ((System.ComponentModel.ISupportInitialize)comparisonDataGridView).EndInit();
         planStatusGroupBox.ResumeLayout(false);
         planStatusGroupBox.PerformLayout();
-        ((System.ComponentModel.ISupportInitialize)comparisonDataGridView).EndInit();
-        comparisonResultsGroupBox.ResumeLayout(false);
         ResumeLayout(false);
         PerformLayout();
     }
