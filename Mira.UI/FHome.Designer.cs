@@ -92,37 +92,38 @@ partial class FHome
         // newComparisonToolStripMenuItem
         // 
         newComparisonToolStripMenuItem.Name = "newComparisonToolStripMenuItem";
-        newComparisonToolStripMenuItem.Size = new Size(158, 22);
+        newComparisonToolStripMenuItem.Size = new Size(180, 22);
         newComparisonToolStripMenuItem.Text = "Nouveau";
+        newComparisonToolStripMenuItem.Click += newComparisonToolStripMenuItem_Click;
         // 
         // openComparisonToolStripMenuItem
         // 
         openComparisonToolStripMenuItem.Name = "openComparisonToolStripMenuItem";
-        openComparisonToolStripMenuItem.Size = new Size(158, 22);
+        openComparisonToolStripMenuItem.Size = new Size(180, 22);
         openComparisonToolStripMenuItem.Text = "Open";
         // 
         // saveComparisonToolStripMenuItem
         // 
         saveComparisonToolStripMenuItem.Name = "saveComparisonToolStripMenuItem";
-        saveComparisonToolStripMenuItem.Size = new Size(158, 22);
+        saveComparisonToolStripMenuItem.Size = new Size(180, 22);
         saveComparisonToolStripMenuItem.Text = "Enregistrer";
         // 
         // saveAsComparisonToolStripMenuItem
         // 
         saveAsComparisonToolStripMenuItem.Name = "saveAsComparisonToolStripMenuItem";
-        saveAsComparisonToolStripMenuItem.Size = new Size(158, 22);
+        saveAsComparisonToolStripMenuItem.Size = new Size(180, 22);
         saveAsComparisonToolStripMenuItem.Text = "Enregistrer Sous";
         // 
         // deleteComparisonToolStripMenuItem
         // 
         deleteComparisonToolStripMenuItem.Name = "deleteComparisonToolStripMenuItem";
-        deleteComparisonToolStripMenuItem.Size = new Size(158, 22);
+        deleteComparisonToolStripMenuItem.Size = new Size(180, 22);
         deleteComparisonToolStripMenuItem.Text = "Supprimer";
         // 
         // exitApplicationToolStripMenuItem
         // 
         exitApplicationToolStripMenuItem.Name = "exitApplicationToolStripMenuItem";
-        exitApplicationToolStripMenuItem.Size = new Size(158, 22);
+        exitApplicationToolStripMenuItem.Size = new Size(180, 22);
         exitApplicationToolStripMenuItem.Text = "Quitter";
         // 
         // reviewToolStripMenuItem
