@@ -1,112 +1,173 @@
 using Mira.Core;
+using Mira.Core.DTO;
+using Mira.Core.Services;
 
 namespace Mira.UI;
 
 public partial class FHome : Form
 {
-    private bool ClientreportLoaded = false;
-    private bool EMPreportLoaded = false;
-    private string ClientReportGeneratedName = string.Empty;
-    private string EMPReportGeneratedName = string.Empty;
+    private ComparisonDto comparisonDto = null;
+    private IFileImportService _fileImportService;
+
+    // Dictionary to map ReportType to UI components and properties
+    private readonly Dictionary<Enums.ReportType, (Label statusLabel, string propertyName)> _reportTypeMapping = new()
+    {
+        { Enums.ReportType.Client, (null, nameof(ComparisonDto.ClientPlantPath)) },
+        { Enums.ReportType.EMP, (null, nameof(ComparisonDto.EmpPlanPath)) }
+    };
 
     public FHome()
     {
         InitializeComponent();
-        CheckDirectories();
-        InitializeStatusLabelCursors();
+        _fileImportService = new FileImportService();
+        InitializeReportTypeMapping();
+        InitializeUi();
     }
 
-    private void CheckDirectories()
+    /// <summary>
+    /// Maps report types to their corresponding UI labels
+    /// </summary>
+    private void InitializeReportTypeMapping()
     {
-        //check if he directory Data is present else create it, then checks for directory Reports inside Data
-        if (!Directory.Exists(Paths.DataDirectory))
+        _reportTypeMapping[Enums.ReportType.Client] = (clientPlanStatusValueLabel, nameof(ComparisonDto.ClientPlantPath));
+        _reportTypeMapping[Enums.ReportType.EMP] = (empPlanStatusValueLabel, nameof(ComparisonDto.EmpPlanPath));
+    }
+
+    private void InitializeUi()
+    {
+        saveComparisonToolStripMenuItem.Enabled = comparisonDto != null;
+        saveAsComparisonToolStripMenuItem.Enabled = comparisonDto != null;
+        deleteComparisonToolStripMenuItem.Enabled = comparisonDto != null;
+        reviewToolStripMenuItem.Enabled = comparisonDto != null;
+        exportToolStripMenuItem.Enabled = comparisonDto != null;
+        comparisonContainerGroupBox.Visible = comparisonDto != null;
+        comparisonContainerGroupBox.Text = comparisonDto != null ? comparisonDto.Id: string.Empty ;
+        UpdateAllStatusLabels();   
+    }
+
+    /// <summary>
+    /// Updates all plan status labels based on the current comparison state
+    /// </summary>
+    private void UpdateAllStatusLabels()
+    {
+        if (comparisonDto != null)
         {
-            Directory.CreateDirectory(Paths.DataDirectory);
+            UpdateStatusLabel(Enums.ReportType.Client, comparisonDto.ClientPlanLoaded);
+            UpdateStatusLabel(Enums.ReportType.EMP, comparisonDto.EmpPlanLoaded);
         }
-        if (!Directory.Exists(Paths.ReportsDirectory))
+    }
+
+    /// <summary>
+    /// Updates the status label and cursor for a specific report type
+    /// </summary>
+    private void UpdateStatusLabel(Enums.ReportType reportType, bool isLoaded)
+    {
+        if (_reportTypeMapping.TryGetValue(reportType, out var mapping))
         {
-            Directory.CreateDirectory(Paths.ReportsDirectory);
+            var (statusLabel, _) = mapping;
+            statusLabel.Text = isLoaded ? "Loaded" : "Not Loaded";
+            statusLabel.ForeColor = isLoaded ? Color.Green : Color.Red;
+            statusLabel.Cursor = isLoaded ? Cursors.Hand : Cursors.Default;
+        }
+    }
+
+    /// <summary>
+    /// Handles import operations for both Client and EMP plans
+    /// </summary>
+    private void HandleImportFile(Enums.ReportType reportType)
+    {
+        if (comparisonDto == null)
+        {
+            return;
         }
 
-    }
+        string? importedFileName = _fileImportService.ImportFile(reportType, comparisonDto.BaseReportDirectory);
 
-    private void InitializeStatusLabelCursors()
-    {
-        // Set default cursors for status labels based on initial load state
-        UpdateStatusLabelCursor(clientPlanStatusValueLabel, ClientreportLoaded);
-        UpdateStatusLabelCursor(empPlanStatusValueLabel, EMPreportLoaded);
-    }
-
-    private void UpdateStatusLabelCursor(Label statusLabel, bool isLoaded)
-    {
-        // Change cursor to hand if loaded, otherwise use default arrow cursor
-        statusLabel.Cursor = isLoaded ? Cursors.Hand : Cursors.Default;
-    }
-
-    private void ImportFile(Enums.ReportType reportType, ref bool reportLoaded, ref string generatedName)
-    {
-
-        //Copy file to Reports directory with a unique name based on the report type and current timestamp
-        using (OpenFileDialog openFileDialog = new OpenFileDialog())
+        if (importedFileName != null)
         {
-            openFileDialog.Title = "Select Report File";
-            openFileDialog.Filter = "All Files (*.pdf)|*.pdf";
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            // Update the comparison DTO with the imported file information
+            if (reportType == Enums.ReportType.Client)
             {
-                string sourceFilePath = openFileDialog.FileName;
-                string fileExtension = Path.GetExtension(sourceFilePath);
-                string timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string destFileName = $"{reportType}_Report_{timeStamp}{fileExtension}";
-                string destFilePath = Path.Combine(Paths.ReportsDirectory, destFileName);
-                File.Copy(sourceFilePath, destFilePath);
-                generatedName = destFileName;
-                reportLoaded = true;
-                MessageBox.Show($"{reportType} report imported successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                comparisonDto.ClientPlantPath = importedFileName;
+                comparisonDto.ClientPlanLoaded = true;
             }
+            else if (reportType == Enums.ReportType.EMP)
+            {
+                comparisonDto.EmpPlanPath = importedFileName;
+                comparisonDto.EmpPlanLoaded = true;
+            }
+
+            // Update UI
+            UpdateStatusLabel(reportType, true);
+
+            // Show success message
+            MessageBox.Show(
+                string.Format(Constants.REPORT_IMPORT_SUCCESS_MESSAGE, reportType),
+                Constants.REPORT_IMPORT_SUCCESS_TITLE,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
         }
     }
 
     private void importClientPlanToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        ImportFile(Enums.ReportType.Client, ref ClientreportLoaded, ref ClientReportGeneratedName);
-        clientPlanStatusValueLabel.Text = ClientreportLoaded ? "Loaded" : "Not Loaded";
-        clientPlanStatusValueLabel.ForeColor = ClientreportLoaded ? Color.Green : Color.Red;
-        UpdateStatusLabelCursor(clientPlanStatusValueLabel, ClientreportLoaded);
+        HandleImportFile(Enums.ReportType.Client);
     }
 
     private void importEmpPlanToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        ImportFile(Enums.ReportType.EMP, ref EMPreportLoaded, ref EMPReportGeneratedName);
-        empPlanStatusValueLabel.Text = EMPreportLoaded ? "Loaded" : "Not Loaded";
-        empPlanStatusValueLabel.ForeColor = EMPreportLoaded ? Color.Green : Color.Red;
-        UpdateStatusLabelCursor(empPlanStatusValueLabel, EMPreportLoaded);
+        HandleImportFile(Enums.ReportType.EMP);
     }
 
-    private void clientPlanStatusValueLabel_Click(object sender, EventArgs e)
+    /// <summary>
+    /// Opens the specified plan file
+    /// </summary>
+    private void OpenPlanFile(string fileName)
     {
-        if (ClientreportLoaded)
+        if (string.IsNullOrEmpty(fileName) || comparisonDto == null)
         {
-            // Open the client report file
-            string filePath = Path.Combine(Paths.ReportsDirectory, ClientReportGeneratedName);
+            return;
+        }
+
+        string filePath = Path.Combine(comparisonDto.BaseReportDirectory, fileName);
+
+        if (File.Exists(filePath))
+        {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
             {
                 FileName = filePath,
                 UseShellExecute = true
             });
+        }
+        else
+        {
+            MessageBox.Show($"File not found: {filePath}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
 
+    private void clientPlanStatusValueLabel_Click(object sender, EventArgs e)
+    {
+        if (comparisonDto?.ClientPlanLoaded == true)
+        {
+            OpenPlanFile(comparisonDto.ClientPlantPath);
         }
     }
 
     private void empPlanStatusValueLabel_Click(object sender, EventArgs e)
     {
-        if (EMPreportLoaded)
+        if (comparisonDto?.EmpPlanLoaded == true)
         {
-            string filePath = Path.Combine(Paths.ReportsDirectory, EMPReportGeneratedName);
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
-            {
-                FileName = filePath,
-                UseShellExecute = true
-            });
+            OpenPlanFile(comparisonDto.EmpPlanPath);
         }
+    }
+
+    /// <summary>
+    /// Handles creation of a new comparison
+    /// </summary>
+    private void newComparisonToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        comparisonDto = new ComparisonDto();
+        InitializeUi();
     }
 }
