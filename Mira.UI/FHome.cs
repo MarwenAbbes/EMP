@@ -1,6 +1,7 @@
 using Mira.Core;
 using Mira.Core.DTO;
 using Mira.Core.Services;
+using System.Text.Json;
 
 namespace Mira.UI;
 
@@ -8,6 +9,8 @@ public partial class FHome : Form
 {
     private ComparisonDto comparisonDto = null;
     private IFileImportService _fileImportService;
+    private IChatGptService _chatGptService;
+    private const string SecretsFileName = "appsettings.local.json";
 
     // Dictionary to map ReportType to UI components and properties
     private readonly Dictionary<Enums.ReportType, (Label statusLabel, string propertyName)> _reportTypeMapping = new()
@@ -20,8 +23,10 @@ public partial class FHome : Form
     {
         InitializeComponent();
         _fileImportService = new FileImportService();
+        _chatGptService = new ChatGptService();
         InitializeReportTypeMapping();
         InitializeUi();
+        LoadChatGptApiKey();
     }
 
     /// <summary>
@@ -43,6 +48,57 @@ public partial class FHome : Form
         comparisonContainerGroupBox.Visible = comparisonDto != null;
         comparisonContainerGroupBox.Text = comparisonDto != null ? comparisonDto.Id: string.Empty ;
         UpdateAllStatusLabels();   
+    }
+
+    /// <summary>
+    /// Loads the ChatGPT API key from secrets file and tests connection
+    /// </summary>
+    private async void LoadChatGptApiKey()
+    {
+        try
+        {
+            string secretsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SecretsFileName);
+            
+            if (File.Exists(secretsPath))
+            {
+                string json = File.ReadAllText(secretsPath);
+                using JsonDocument doc = JsonDocument.Parse(json);
+                
+                if (doc.RootElement.TryGetProperty("OpenAI", out JsonElement openAiElement) &&
+                    openAiElement.TryGetProperty("ApiKey", out JsonElement apiKeyElement))
+                {
+                    string? apiKey = apiKeyElement.GetString();
+                    if (!string.IsNullOrEmpty(apiKey))
+                    {
+                        statusStripLabel.Text = "ChatGPT: Connecting...";
+                        statusStripLabel.ForeColor = Color.Orange;
+                        
+                        _chatGptService.SetApiKey(apiKey);
+                        bool isConnected = await _chatGptService.TestConnectionAsync();
+
+                        if (isConnected)
+                        {
+                            statusStripLabel.Text = "ChatGPT: Connected (GPT-4o mini) ✓";
+                            statusStripLabel.ForeColor = Color.Green;
+                        }
+                        else
+                        {
+                            statusStripLabel.Text = "ChatGPT: Connection failed ✗";
+                            statusStripLabel.ForeColor = Color.Red;
+                        }
+                        return;
+                    }
+                }
+            }
+            
+            statusStripLabel.Text = "ChatGPT: Not configured";
+            statusStripLabel.ForeColor = Color.Gray;
+        }
+        catch (Exception ex)
+        {
+            statusStripLabel.Text = $"ChatGPT: Error - {ex.Message}";
+            statusStripLabel.ForeColor = Color.Red;
+        }
     }
 
     /// <summary>
