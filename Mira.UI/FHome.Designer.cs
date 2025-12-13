@@ -65,12 +65,15 @@ partial class FHome
         empPlanStatusLabel = new Label();
         clientPlanStatusValueLabel = new Label();
         clientPlanStatusLabel = new Label();
+        statusStrip = new StatusStrip();
+        statusStripLabel = new ToolStripStatusLabel();
         mainMenuStrip.SuspendLayout();
         generalInfoGroupBox.SuspendLayout();
         comparisonContainerGroupBox.SuspendLayout();
         comparisonResultsGroupBox.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)comparisonDataGridView).BeginInit();
         planStatusGroupBox.SuspendLayout();
+        statusStrip.SuspendLayout();
         SuspendLayout();
         // 
         // mainMenuStrip
@@ -390,11 +393,27 @@ partial class FHome
         clientPlanStatusLabel.TabIndex = 0;
         clientPlanStatusLabel.Text = "Plan Client est : ";
         // 
+        // statusStrip
+        // 
+        statusStrip.Items.AddRange(new ToolStripItem[] { statusStripLabel });
+        statusStrip.Location = new Point(0, 428);
+        statusStrip.Name = "statusStrip";
+        statusStrip.Size = new Size(800, 22);
+        statusStrip.TabIndex = 3;
+        statusStrip.Text = "statusStrip";
+        // 
+        // statusStripLabel
+        // 
+        statusStripLabel.Name = "statusStripLabel";
+        statusStripLabel.Size = new Size(118, 17);
+        statusStripLabel.Text = "ChatGPT: Initializing...";
+        // 
         // FHome
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(800, 450);
+        Controls.Add(statusStrip);
         Controls.Add(comparisonContainerGroupBox);
         Controls.Add(mainMenuStrip);
         MainMenuStrip = mainMenuStrip;
@@ -409,6 +428,8 @@ partial class FHome
         ((System.ComponentModel.ISupportInitialize)comparisonDataGridView).EndInit();
         planStatusGroupBox.ResumeLayout(false);
         planStatusGroupBox.PerformLayout();
+        statusStrip.ResumeLayout(false);
+        statusStrip.PerformLayout();
         ResumeLayout(false);
         PerformLayout();
     }
@@ -451,4 +472,6 @@ partial class FHome
     private Label empPlanStatusLabel;
     private Label clientPlanStatusValueLabel;
     private Label clientPlanStatusLabel;
+    private StatusStrip statusStrip;
+    private ToolStripStatusLabel statusStripLabel;
 }

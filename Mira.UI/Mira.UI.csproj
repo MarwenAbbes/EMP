@@ -12,4 +12,10 @@
       <ProjectReference Include="..\Mira.Core\Mira.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="appsettings.local.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
