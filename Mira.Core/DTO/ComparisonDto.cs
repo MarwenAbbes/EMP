@@ -19,13 +19,13 @@ namespace Mira.Core.DTO
         public string Id => _id;
         public string BaseReportDirectory => _baseReportDirectory;
 
-        public string ProjectName { get; set; }
-        public string ResponsiblePerson { get; set; }
+        public string ProjectName { get; set; } = string.Empty;
+        public string ResponsiblePerson { get; set; } = string.Empty;
         public DateTime ComparisonDate { get; set; }
-        public string EmpPlanReference { get; set; }
-        public string ClientPlanReference { get; set; }
-        public string ClientPlantPath { get; set; }
-        public string EmpPlanPath { get; set; }
+        public string EmpPlanReference { get; set; } = string.Empty;
+        public string ClientPlanReference { get; set; } = string.Empty;
+        public string ClientPlantPath { get; set; } = string.Empty;
+        public string EmpPlanPath { get; set; } = string.Empty;
         public bool ClientPlanLoaded { get; set; }
         public bool EmpPlanLoaded { get; set; }
 
@@ -39,7 +39,8 @@ namespace Mira.Core.DTO
             _baseReportDirectory = Path.Combine(Paths.ReportsDirectory, _id);
 
             // Initialize directory structure
-            var directoryService = new DirectoryService();
+            var logger = new LoggerService();
+            var directoryService = new DirectoryService(logger);
             directoryService.EnsureDirectoriesExist(_id);
         }
     }

@@ -23,6 +23,14 @@ namespace Mira.Core.Services
     /// </summary>
     public class FileImportService : IFileImportService
     {
+        private readonly ILoggerService _logger;
+
+        public FileImportService(ILoggerService logger)
+        {
+            _logger = logger;
+            _logger.LogInfo("File import service initialized");
+        }
+
         /// <summary>
         /// Imports a file from the user's file system to the specified directory
         /// </summary>
@@ -31,17 +39,24 @@ namespace Mira.Core.Services
         /// <returns>The name of the imported file, or null if the operation was cancelled</returns>
         public string? ImportFile(Enums.ReportType reportType, string destinationDirectory)
         {
+            _logger.LogInfo($"Starting file import for {reportType}");
+            _logger.LogDebug($"Destination directory: {destinationDirectory}");
+
             using (var openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Title = Constants.SELECT_REPORT_FILE_TITLE;
                 openFileDialog.Filter = Constants.PDF_FILTER;
 
+                _logger.LogDebug("Showing file dialog");
+
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
+                    _logger.LogInfo($"User selected file: {Path.GetFileName(openFileDialog.FileName)}");
                     return CopyFileToDestination(openFileDialog.FileName, reportType, destinationDirectory);
                 }
             }
 
+            _logger.LogInfo("File import cancelled by user");
             return null;
         }
 
@@ -55,9 +70,19 @@ namespace Mira.Core.Services
             string destFileName = $"{reportType}_Report_{timeStamp}{fileExtension}";
             string destFilePath = Path.Combine(destinationDirectory, destFileName);
 
-            File.Copy(sourceFilePath, destFilePath, overwrite: false);
+            _logger.LogDebug($"Copying file to: {destFilePath}");
 
-            return destFileName;
+            try
+            {
+                File.Copy(sourceFilePath, destFilePath, overwrite: false);
+                _logger.LogInfo($"File imported successfully: {destFileName}");
+                return destFileName;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to copy file: {sourceFilePath}", ex);
+                throw;
+            }
         }
     }
 }
