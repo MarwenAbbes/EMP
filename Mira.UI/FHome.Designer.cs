@@ -211,6 +211,7 @@ partial class FHome
         compareButton.TabIndex = 2;
         compareButton.Text = "Comparer";
         compareButton.UseVisualStyleBackColor = true;
+        compareButton.Click += compareButton_Click;
         // 
         // comparisonDateTextBox
         // 

@@ -8,7 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenAI" Version="2.1.0" />
+        <PackageReference Include="OpenAI" Version="2.1.0-beta.2" />
+        <PackageReference Include="PDFtoImage" Version="5.0.0" />
+        <PackageReference Include="Serilog" Version="4.1.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+        <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     </ItemGroup>
 
 </Project>
