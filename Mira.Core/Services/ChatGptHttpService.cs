@@ -2,6 +2,9 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using System.IO;
+using System.Linq;
 
 namespace Mira.Core.Services;
 
@@ -65,6 +68,14 @@ public class ChatGptHttpService
     {
         _logger.LogInfo($"Setting output directory for HTTP service: {outputDirectory}");
         _outputDirectory = outputDirectory;
+    }
+
+    // Response export is delegated to an exporter implementation. A default CSV exporter is used when none is set.
+    private IChatGptResponseExporter? _responseExporter;
+
+    public void SetResponseExporter(IChatGptResponseExporter exporter)
+    {
+        _responseExporter = exporter;
     }
 
     /// <summary>
@@ -135,6 +146,20 @@ public class ChatGptHttpService
             progressCallback?.Report("Parsing response from ChatGPT...");
             var result = await ParseResponseAsync(response, cancellationToken);
 
+            // Save response to CSV using configured exporter (non-fatal)
+            try
+            {
+                var fileName = $"Comparison_{DateTime.Now:yyyyMMdd_HHmmss}";
+                var savedPath = SaveChatGptResponseAsCsv(result, fileName);
+                _logger.LogInfo($"ChatGPT response exported to CSV: {savedPath}");
+                progressCallback?.Report($"CSV export saved: {savedPath}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to export ChatGPT response to CSV: {ex.Message}", ex);
+                progressCallback?.Report($"CSV export failed: {ex.Message}");
+            }
+
             progressCallback?.Report("Comparison completed successfully!");
             return result;
         }
@@ -147,6 +172,12 @@ public class ChatGptHttpService
     }
 
     #endregion
+
+    public string SaveChatGptResponseAsCsv(string chatResponseText, string fileNameWithoutExtension = "comparison")
+    {
+        var exporter = _responseExporter ?? new CsvChatGptResponseExporter(_logger);
+        return exporter.SaveAsCsv(chatResponseText, fileNameWithoutExtension, _outputDirectory);
+    }
 
     #region Private Helper Methods - Validation
 
@@ -459,6 +490,7 @@ EXIGENCES FINALES :
 
     #endregion
 }
+
 #region OpenAI API Models
 
 public class OpenAiChatRequest
