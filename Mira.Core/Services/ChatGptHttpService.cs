@@ -81,11 +81,7 @@ public class ChatGptHttpService
     /// <summary>
     /// Compares two PDFs by converting them to images and sending via HTTP
     /// </summary>
-    public async Task<string> ComparePdfDocumentsAsync(
-   string clientPdfPath,
-        string supplierPdfPath,
-    IProgress<string>? progressCallback = null,
-        CancellationToken cancellationToken = default)
+    public async Task<string> ComparePdfDocumentsAsync(string clientPdfPath,string supplierPdfPath,IProgress<string>? progressCallback = null,CancellationToken cancellationToken = default)
     {
         _logger.LogInfo($"=== HTTP COMPARISON: {clientPdfPath} vs {supplierPdfPath} ===");
         progressCallback?.Report("Starting HTTP-based PDF comparison...");
@@ -118,11 +114,7 @@ public class ChatGptHttpService
     /// <summary>
     /// Compares pre-converted images via HTTP (main comparison method)
     /// </summary>
-    public async Task<string> ComparePdfDocumentsViaHttpAsync(
- List<byte[]> clientImages,
-        List<byte[]> supplierImages,
-        IProgress<string>? progressCallback = null,
-        CancellationToken cancellationToken = default)
+    public async Task<string> ComparePdfDocumentsViaHttpAsync(List<byte[]> clientImages,List<byte[]> supplierImages,IProgress<string>? progressCallback = null,CancellationToken cancellationToken = default)
     {
         _logger.LogInfo($"=== HTTP IMAGE COMPARISON: {clientImages.Count} client + {supplierImages.Count} supplier pages ===");
 
