@@ -37,8 +37,8 @@ public partial class FHome : Form
         
         InitializeReportTypeMapping();
         InitializeUi();
-        LoadChatGptApiKey();
-        
+  LoadChatGptApiKey();
+ 
         _loggerService.LogInfo("Main form initialization completed");
     }
 
@@ -100,16 +100,16 @@ public partial class FHome : Form
 
                         if (isConnected)
                         {
-                            statusStripLabel.Text = "ChatGPT: Connected (GPT-4o mini) ✓";
-                            statusStripLabel.ForeColor = Color.Green;
-                            _loggerService.LogInfo("ChatGPT connection test successful");
-                        }
-                        else
-                        {
-                            statusStripLabel.Text = "ChatGPT: Connection failed ✗";
-                            statusStripLabel.ForeColor = Color.Red;
-                            _loggerService.LogWarning("ChatGPT connection test failed");
-                        }
+      statusStripLabel.Text = "ChatGPT: Connected (GPT-4o) ✓";
+      statusStripLabel.ForeColor = Color.Green;
+    _loggerService.LogInfo("ChatGPT connection test successful");
+             }
+           else
+  {
+    statusStripLabel.Text = "ChatGPT: Connection failed ✗";
+      statusStripLabel.ForeColor = Color.Red;
+  _loggerService.LogWarning("ChatGPT connection test failed");
+        }
                         return;
                     }
                 }
@@ -337,14 +337,19 @@ public partial class FHome : Form
     /// </summary>
     private void newComparisonToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        _loggerService.LogInfo("User clicked new comparison menu item");
+     _loggerService.LogInfo("User clicked new comparison menu item");
         comparisonDto = new ComparisonDto();
         _loggerService.LogInfo($"New comparison created: {comparisonDto.Id}");
+        
+        // Set the output directory for ChatGPT service to save images
+        _chatGptService.SetOutputDirectory(comparisonDto.BaseReportDirectory);
+        _loggerService.LogInfo($"Output directory set for ChatGPT service: {comparisonDto.BaseReportDirectory}");
+        
         InitializeUi();
     }
 
     /// <summary>
-    /// Handles compare button click - analyzes both plans with ChatGPT
+    /// Handles compare button click - compares both plans with ChatGPT
     /// </summary>
     private async void compareButton_Click(object sender, EventArgs e)
     {
@@ -352,76 +357,133 @@ public partial class FHome : Form
 
         if (comparisonDto == null)
         {
-            _loggerService.LogWarning("Compare attempted without active comparison");
-            MessageBox.Show(
-                "Please create a new comparison first.",
-                "No Comparison",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
-            );
-            return;
-        }
+       _loggerService.LogWarning("Compare attempted without active comparison");
+       MessageBox.Show(
+    "Please create a new comparison first.",
+    "No Comparison",
+        MessageBoxButtons.OK,
+        MessageBoxIcon.Warning
+ );
+        return;
+    }
 
         if (!comparisonDto.ClientPlanLoaded)
         {
-            _loggerService.LogWarning("Compare attempted without Client plan loaded");
-            MessageBox.Show(
+         _loggerService.LogWarning("Compare attempted without Client plan loaded");
+MessageBox.Show(
                 "Please import the Client plan first.",
-                "Client Plan Missing",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
+      "Client Plan Missing",
+      MessageBoxButtons.OK,
+      MessageBoxIcon.Warning
             );
-            return;
-        }
+    return;
+    }
+
+        if (!comparisonDto.EmpPlanLoaded)
+        {
+            _loggerService.LogWarning("Compare attempted without EMP plan loaded");
+  MessageBox.Show(
+  "Please import the EMP/Supplier plan first.",
+        "EMP Plan Missing",
+                MessageBoxButtons.OK,
+    MessageBoxIcon.Warning
+   );
+          return;
+      }
 
         if (!_chatGptService.IsConfigured)
         {
-            _loggerService.LogWarning("Compare attempted without ChatGPT configured");
-            MessageBox.Show(
-                "ChatGPT is not configured. Please check your API key.",
-                "ChatGPT Not Configured",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
+    _loggerService.LogWarning("Compare attempted without ChatGPT configured");
+          MessageBox.Show(
+        "ChatGPT is not configured. Please check your API key.",
+     "ChatGPT Not Configured",
+      MessageBoxButtons.OK,
+        MessageBoxIcon.Warning
             );
             return;
         }
 
         // Disable button during processing
         compareButton.Enabled = false;
-        compareButton.Text = "Analyzing...";
+  compareButton.Text = "Comparing...";
+  
+        // Create progress handler to update UI
+        var progress = new Progress<string>(status =>
+     {
+       statusStripLabel.Text = $"ChatGPT: {status}";
+          statusStripLabel.ForeColor = Color.Orange;
+    _loggerService.LogInfo($"Progress: {status}");
+ Application.DoEvents(); // Allow UI to update
+        });
 
         try
         {
-            _loggerService.LogInfo("Starting comparison analysis");
+     _loggerService.LogInfo("Starting comparison analysis");
 
-            // Analyze Client Plan
-            await AnalyzeClientPlanWithChatGpt(comparisonDto.ClientPlantPath);
+          statusStripLabel.Text = "ChatGPT: Initializing comparison...";
+            statusStripLabel.ForeColor = Color.Orange;
 
-            // If EMP plan is also loaded, analyze it
-            if (comparisonDto.EmpPlanLoaded)
-            {
-                _loggerService.LogInfo("Analyzing EMP plan as well");
-                await AnalyzeEmpPlanWithChatGpt(comparisonDto.EmpPlanPath);
-            }
+     // Get full file paths
+         string clientFilePath = Path.Combine(comparisonDto.BaseReportDirectory, comparisonDto.ClientPlantPath);
+            string empFilePath = Path.Combine(comparisonDto.BaseReportDirectory, comparisonDto.EmpPlanPath);
 
-            _loggerService.LogInfo("Comparison analysis completed");
-        }
-        catch (Exception ex)
-        {
-            _loggerService.LogError("Comparison analysis failed", ex);
+_loggerService.LogInfo($"Client path: {clientFilePath}");
+     _loggerService.LogInfo($"EMP path: {empFilePath}");
+
+        // Compare both documents WITH PROGRESS REPORTING
+string comparisonResult = await _chatGptService.ComparePdfDocumentsAsync(
+       clientFilePath, 
+                empFilePath, 
+progress);  // Pass progress callback
+
+ // Log the comparison result
+          _loggerService.LogInfo("Logging comparison result");
+        _loggerService.LogChatGptResponse($"Comparison_{comparisonDto.Id}", comparisonResult);
+
+            statusStripLabel.Text = "ChatGPT: Comparison completed successfully ✓";
+            statusStripLabel.ForeColor = Color.Green;
+
+ _loggerService.LogInfo("Comparison analysis completed successfully");
+
             MessageBox.Show(
-                $"Comparison failed:\n{ex.Message}",
-                "Error",
+     $"Comparison completed successfully!\n\nResponse length: {comparisonResult.Length} characters\n\nCheck the logs for detailed results.",
+             "Comparison Complete",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            );
+   MessageBoxIcon.Information
+     );
+     }
+    catch (TimeoutException ex)
+        {
+            _loggerService.LogError("Comparison timed out", ex);
+      statusStripLabel.Text = "ChatGPT: Comparison timed out ⏱";
+   statusStripLabel.ForeColor = Color.Red;
+          
+     MessageBox.Show(
+      $"The comparison operation timed out after 10 minutes.\n\nThis can happen with large or complex documents.\n\nDetails: {ex.Message}",
+  "Timeout Error",
+          MessageBoxButtons.OK,
+     MessageBoxIcon.Warning
+      );
         }
+      catch (Exception ex)
+   {
+         _loggerService.LogError("Comparison analysis failed", ex);
+    statusStripLabel.Text = "ChatGPT: Comparison failed ✗";
+      statusStripLabel.ForeColor = Color.Red;
+      
+            MessageBox.Show(
+ $"Comparison failed:\n\n{ex.Message}\n\nCheck the logs for more details.",
+          "Error",
+      MessageBoxButtons.OK,
+      MessageBoxIcon.Error
+    );
+  }
         finally
         {
-            // Re-enable button
+      // Re-enable button
             compareButton.Enabled = true;
-            compareButton.Text = "Comparer";
-        }
+     compareButton.Text = "Comparer";
+     }
     }
 
     /// <summary>

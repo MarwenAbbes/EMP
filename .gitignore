@@ -3,6 +3,9 @@ secrets.json
 appsettings.local.json
 **/appsettings.local.json
 
+# Generated preview images
+**/PreviewImages/
+
 # Build results
 [Dd]ebug/
 [Rr]elease/
