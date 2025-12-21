@@ -2,6 +2,10 @@ using Mira.Core;
 using Mira.Core.DTO;
 using Mira.Core.Services;
 using System.Text.Json;
+using System.Text;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Mira.UI;
 
@@ -274,6 +278,29 @@ public partial class FHome : Form
         HandleImportFile(Enums.ReportType.EMP);
     }
 
+    private void openComparisonToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        _loggerService.LogInfo("User clicked Open Comparison menu item");
+
+        using var ofd = new OpenFileDialog();
+        ofd.Title = "Open comparison CSV";
+        ofd.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+        ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        if (ofd.ShowDialog() == DialogResult.OK)
+        {
+            try
+            {
+                LoadCsvIntoTabs(ofd.FileName);
+                _loggerService.LogInfo($"Loaded comparison CSV: {ofd.FileName}");
+            }
+            catch (Exception ex)
+            {
+                _loggerService.LogError("Failed to load selected comparison CSV", ex);
+                MessageBox.Show($"Failed to load CSV: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+
     /// <summary>
     /// Opens the specified plan file
     /// </summary>
@@ -420,38 +447,51 @@ MessageBox.Show(
         {
      _loggerService.LogInfo("Starting comparison analysis");
 
-          statusStripLabel.Text = "ChatGPT: Initializing comparison...";
-            statusStripLabel.ForeColor = Color.Orange;
+           statusStripLabel.Text = "ChatGPT: Initializing comparison...";
+             statusStripLabel.ForeColor = Color.Orange;
 
-     // Get full file paths
-         string clientFilePath = Path.Combine(comparisonDto.BaseReportDirectory, comparisonDto.ClientPlantPath);
-            string empFilePath = Path.Combine(comparisonDto.BaseReportDirectory, comparisonDto.EmpPlanPath);
+      // Get full file paths
+          string clientFilePath = Path.Combine(comparisonDto.BaseReportDirectory, comparisonDto.ClientPlantPath);
+             string empFilePath = Path.Combine(comparisonDto.BaseReportDirectory, comparisonDto.EmpPlanPath);
 
-_loggerService.LogInfo($"Client path: {clientFilePath}");
-     _loggerService.LogInfo($"EMP path: {empFilePath}");
+ _loggerService.LogInfo($"Client path: {clientFilePath}");
+      _loggerService.LogInfo($"EMP path: {empFilePath}");
 
-        // Compare both documents WITH PROGRESS REPORTING
-string comparisonResult = await _chatGptService.ComparePdfDocumentsAsync(
-       clientFilePath, 
-                empFilePath, 
-progress);  // Pass progress callback
+         // Compare both documents WITH PROGRESS REPORTING
+ string comparisonResult = await _chatGptService.ComparePdfDocumentsAsync(
+        clientFilePath, 
+                 empFilePath, 
+ progress);  // Pass progress callback
 
- // Log the comparison result
-          _loggerService.LogInfo("Logging comparison result");
-        _loggerService.LogChatGptResponse($"Comparison_{comparisonDto.Id}", comparisonResult);
+  // Log the comparison result
+           _loggerService.LogInfo("Logging comparison result");
+         _loggerService.LogChatGptResponse($"Comparison_{comparisonDto.Id}", comparisonResult);
+
+            // Save comparison result as CSV using exporter and load into UI tabs
+            try
+            {
+                var exporter = new CsvChatGptResponseExporter(_loggerService);
+                var csvPath = exporter.SaveAsCsv(comparisonResult, $"Comparison_{comparisonDto.Id}", comparisonDto.BaseReportDirectory);
+                _loggerService.LogInfo($"Saved comparison CSV to: {csvPath}");
+                LoadCsvIntoTabs(csvPath);
+            }
+            catch (Exception ex)
+            {
+                _loggerService.LogError("Failed to save/load CSV for comparison result", ex);
+            }
 
             statusStripLabel.Text = "ChatGPT: Comparison completed successfully ✓";
             statusStripLabel.ForeColor = Color.Green;
 
- _loggerService.LogInfo("Comparison analysis completed successfully");
+  _loggerService.LogInfo("Comparison analysis completed successfully");
 
-            MessageBox.Show(
-     $"Comparison completed successfully!\n\nResponse length: {comparisonResult.Length} characters\n\nCheck the logs for detailed results.",
-             "Comparison Complete",
-                MessageBoxButtons.OK,
-   MessageBoxIcon.Information
-     );
-     }
+             MessageBox.Show(
+      $"Comparison completed successfully!\n\nResponse length: {comparisonResult.Length} characters\n\nCheck the logs for detailed results.",
+              "Comparison Complete",
+                 MessageBoxButtons.OK,
+    MessageBoxIcon.Information
+      );
+      }
     catch (TimeoutException ex)
         {
             _loggerService.LogError("Comparison timed out", ex);
@@ -525,5 +565,129 @@ progress);  // Pass progress callback
             _loggerService.LogError("EMP plan ChatGPT PDF analysis failed", ex);
             throw;
         }
+    }
+
+    private void LoadCsvIntoTabs(string csvPath)
+    {
+        try
+        {
+            if (!File.Exists(csvPath))
+            {
+                _loggerService.LogError($"CSV file not found: {csvPath}");
+                return;
+            }
+
+            // Read all lines and parse CSV rows
+            var lines = File.ReadAllLines(csvPath, Encoding.UTF8);
+            if (lines.Length <= 1)
+            {
+                _loggerService.LogWarning("CSV file contains no data");
+                return;
+            }
+
+            // First line is header: Section,Client,Fournisseur,Statut
+            var dataBySection = new Dictionary<string, List<string[]>>();
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                // Simple CSV split that handles quoted fields
+                var fields = ParseCsvLine(line);
+                if (fields.Length < 4) continue;
+                var section = fields[0];
+                if (!dataBySection.TryGetValue(section, out var list))
+                {
+                    list = new List<string[]>();
+                    dataBySection[section] = list;
+                }
+                list.Add(new[] { fields[1], fields[2], fields[3] });
+            }
+
+            // Clear existing tabs and create a TabControl dynamically if not present
+            TabControl? tabControl = this.Controls.OfType<TabControl>().FirstOrDefault(t => t.Name == "comparisonTabControl");
+            if (tabControl == null)
+            {
+                tabControl = new TabControl();
+                tabControl.Name = "comparisonTabControl";
+                tabControl.Dock = DockStyle.Top;
+                tabControl.Height = 250;
+                this.Controls.Add(tabControl);
+                // Place it above the comparison container
+                tabControl.BringToFront();
+            }
+
+            tabControl.TabPages.Clear();
+
+            foreach (var kv in dataBySection)
+             {
+                 var tab = new TabPage(kv.Key);
+                 var grid = new DataGridView();
+                 grid.Dock = DockStyle.Fill;
+                 grid.ReadOnly = true;
+                 grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                 grid.Columns.Add("Client", "Client");
+                 grid.Columns.Add("Fournisseur", "Fournisseur");
+                 grid.Columns.Add("Statut", "Statut");
+ 
+                 foreach (var row in kv.Value)
+                 {
+                     var idx = grid.Rows.Add(row[0], row[1], row[2]);
+                     var dgRow = grid.Rows[idx];
+                     if (string.Equals(row[2]?.Trim(), "Conforme", StringComparison.OrdinalIgnoreCase))
+                     {
+                         dgRow.DefaultCellStyle.BackColor = Color.LightGreen;
+                     }
+                     else
+                     {
+                         dgRow.DefaultCellStyle.BackColor = Color.LightCoral;
+                     }
+                 }
+ 
+                 tab.Controls.Add(grid);
+                 tabControl.TabPages.Add(tab);
+             }
+
+            _loggerService.LogInfo($"Loaded CSV into {dataBySection.Count} tabs");
+        }
+        catch (Exception ex)
+        {
+            _loggerService.LogError("Failed to load CSV into tabs", ex);
+        }
+    }
+
+    private string[] ParseCsvLine(string line)
+    {
+        var fields = new List<string>();
+        var sb = new StringBuilder();
+        bool inQuotes = false;
+
+        for (int i = 0; i < line.Length; i++)
+        {
+            char c = line[i];
+            if (c == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    sb.Append('"');
+                    i++; // skip escaped quote
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (c == ',' && !inQuotes)
+            {
+                fields.Add(sb.ToString());
+                sb.Clear();
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+
+        fields.Add(sb.ToString());
+        return fields.ToArray();
     }
 }

@@ -67,6 +67,7 @@ partial class FHome
         clientPlanStatusLabel = new Label();
         statusStrip = new StatusStrip();
         statusStripLabel = new ToolStripStatusLabel();
+        comparisonTabControl = new TabControl();
         mainMenuStrip.SuspendLayout();
         generalInfoGroupBox.SuspendLayout();
         comparisonContainerGroupBox.SuspendLayout();
@@ -81,7 +82,7 @@ partial class FHome
         mainMenuStrip.Items.AddRange(new ToolStripItem[] { comparisonToolStripMenuItem, reviewToolStripMenuItem, exportToolStripMenuItem });
         mainMenuStrip.Location = new Point(0, 0);
         mainMenuStrip.Name = "mainMenuStrip";
-        mainMenuStrip.Size = new Size(800, 24);
+        mainMenuStrip.Size = new Size(1461, 24);
         mainMenuStrip.TabIndex = 0;
         mainMenuStrip.Text = "mainMenuStrip";
         // 
@@ -95,38 +96,39 @@ partial class FHome
         // newComparisonToolStripMenuItem
         // 
         newComparisonToolStripMenuItem.Name = "newComparisonToolStripMenuItem";
-        newComparisonToolStripMenuItem.Size = new Size(180, 22);
+        newComparisonToolStripMenuItem.Size = new Size(158, 22);
         newComparisonToolStripMenuItem.Text = "Nouveau";
         newComparisonToolStripMenuItem.Click += newComparisonToolStripMenuItem_Click;
         // 
         // openComparisonToolStripMenuItem
         // 
         openComparisonToolStripMenuItem.Name = "openComparisonToolStripMenuItem";
-        openComparisonToolStripMenuItem.Size = new Size(180, 22);
+        openComparisonToolStripMenuItem.Size = new Size(158, 22);
         openComparisonToolStripMenuItem.Text = "Open";
+        openComparisonToolStripMenuItem.Click += openComparisonToolStripMenuItem_Click;
         // 
         // saveComparisonToolStripMenuItem
         // 
         saveComparisonToolStripMenuItem.Name = "saveComparisonToolStripMenuItem";
-        saveComparisonToolStripMenuItem.Size = new Size(180, 22);
+        saveComparisonToolStripMenuItem.Size = new Size(158, 22);
         saveComparisonToolStripMenuItem.Text = "Enregistrer";
         // 
         // saveAsComparisonToolStripMenuItem
         // 
         saveAsComparisonToolStripMenuItem.Name = "saveAsComparisonToolStripMenuItem";
-        saveAsComparisonToolStripMenuItem.Size = new Size(180, 22);
+        saveAsComparisonToolStripMenuItem.Size = new Size(158, 22);
         saveAsComparisonToolStripMenuItem.Text = "Enregistrer Sous";
         // 
         // deleteComparisonToolStripMenuItem
         // 
         deleteComparisonToolStripMenuItem.Name = "deleteComparisonToolStripMenuItem";
-        deleteComparisonToolStripMenuItem.Size = new Size(180, 22);
+        deleteComparisonToolStripMenuItem.Size = new Size(158, 22);
         deleteComparisonToolStripMenuItem.Text = "Supprimer";
         // 
         // exitApplicationToolStripMenuItem
         // 
         exitApplicationToolStripMenuItem.Name = "exitApplicationToolStripMenuItem";
-        exitApplicationToolStripMenuItem.Size = new Size(180, 22);
+        exitApplicationToolStripMenuItem.Size = new Size(158, 22);
         exitApplicationToolStripMenuItem.Text = "Quitter";
         // 
         // reviewToolStripMenuItem
@@ -161,7 +163,7 @@ partial class FHome
         // 
         exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { exportExcelFormatToolStripMenuItem, exportWordFormatToolStripMenuItem, exportCsvFormatToolStripMenuItem });
         exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-        exportToolStripMenuItem.Size = new Size(59, 20);
+        exportToolStripMenuItem.Size = new Size(58, 20);
         exportToolStripMenuItem.Text = "Exporte";
         // 
         // exportExcelFormatToolStripMenuItem
@@ -315,7 +317,7 @@ partial class FHome
         comparisonContainerGroupBox.Controls.Add(generalInfoGroupBox);
         comparisonContainerGroupBox.Location = new Point(12, 41);
         comparisonContainerGroupBox.Name = "comparisonContainerGroupBox";
-        comparisonContainerGroupBox.Size = new Size(776, 397);
+        comparisonContainerGroupBox.Size = new Size(776, 186);
         comparisonContainerGroupBox.TabIndex = 2;
         comparisonContainerGroupBox.TabStop = false;
         comparisonContainerGroupBox.Text = "Comparison COMP0001";
@@ -397,29 +399,40 @@ partial class FHome
         // statusStrip
         // 
         statusStrip.Items.AddRange(new ToolStripItem[] { statusStripLabel });
-        statusStrip.Location = new Point(0, 428);
+        statusStrip.Location = new Point(0, 969);
         statusStrip.Name = "statusStrip";
-        statusStrip.Size = new Size(800, 22);
+        statusStrip.Size = new Size(1461, 22);
         statusStrip.TabIndex = 3;
         statusStrip.Text = "statusStrip";
         // 
         // statusStripLabel
         // 
         statusStripLabel.Name = "statusStripLabel";
-        statusStripLabel.Size = new Size(118, 17);
+        statusStripLabel.Size = new Size(123, 17);
         statusStripLabel.Text = "ChatGPT: Initializing...";
+        // 
+        // comparisonTabControl
+        // 
+        comparisonTabControl.Dock = DockStyle.Bottom;
+        comparisonTabControl.Location = new Point(0, 249);
+        comparisonTabControl.Name = "comparisonTabControl";
+        comparisonTabControl.SelectedIndex = 0;
+        comparisonTabControl.Size = new Size(1461, 720);
+        comparisonTabControl.TabIndex = 4;
         // 
         // FHome
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(800, 450);
+        ClientSize = new Size(1461, 991);
+        Controls.Add(comparisonTabControl);
         Controls.Add(statusStrip);
         Controls.Add(comparisonContainerGroupBox);
         Controls.Add(mainMenuStrip);
         MainMenuStrip = mainMenuStrip;
         Name = "FHome";
         Text = "Mira- Revue Technique des Plans";
+        WindowState = FormWindowState.Maximized;
         mainMenuStrip.ResumeLayout(false);
         mainMenuStrip.PerformLayout();
         generalInfoGroupBox.ResumeLayout(false);
@@ -453,6 +466,7 @@ partial class FHome
     private ToolStripMenuItem exportExcelFormatToolStripMenuItem;
     private ToolStripMenuItem exportWordFormatToolStripMenuItem;
     private ToolStripMenuItem exportCsvFormatToolStripMenuItem;
+    private TabControl comparisonTabControl;
     private GroupBox generalInfoGroupBox;
     private TextBox responsiblePersonTextBox;
     private Label responsiblePersonLabel;
